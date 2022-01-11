@@ -9,21 +9,23 @@ app = Flask(__name__)
 api = Api(app)
 
 class GetRecommendationEndPoint(Resource):
-    def post(self, favMoviesList):
-        if(len(favMoviesList) < 1 or favMoviesList is None):
-            raise ValueError('Cannot make recommendation for 0 movies')
-            return 0
-        r = Recommendation()
-        predictedMoviesList = r.make_recommendation(favMoviesList)
-        #print(predictedMoviesList.values.tolist()[0][1])
-        print(favMoviesList)
-        response = json.dumps(predictedMoviesList.values.tolist())
-        return response
+    def post(self, favMovie):
+
+        if favMovie is None:
+            raise ValueError
+            return favMovie
+        else:
+            r = Recommendation()
+            recommendation = r.make_recommendation(favMovie)
+            if recommendation is None:
+                return {'data': 'couldn\'t find recommendation'}
+            else:
+                return {"data": recommendation}
 
 
 
 
-api.add_resource(GetRecommendationEndPoint, '/recommend/<favMoviesList>')
+api.add_resource(GetRecommendationEndPoint, '/recommend/<favMovie>')
 if __name__ == "__main__":
     app.run(debug=True)
 

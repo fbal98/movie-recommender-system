@@ -13,62 +13,30 @@ class Recommendation:
 
     def __init__(self):
         # importing data and model
-        self.encodedData = pickle.load(open('assets/encodedData', 'rb'))
-        self.data = pickle.load(open('assets/data', 'rb'))
-        self.model = pickle.load(open('assets/model', 'rb'))
+        self.user_movie_df = pickle.load(open('assets/user_movie_df', 'rb'))
+        self.movieTitles = pickle.load(open('assets/movieTitles', 'rb'))
 
     def findMatching(self, query):
-        matchingList = []
+        matching = None
+        for row in self.movieTitles.itertuples():
 
-        i = 0
+            if fuzz.partial_ratio(row[1].lower(), query) > 80:
+                matching = row[1]
+                break
 
-        for row in self.data.itertuples():
-            title = row[2]
-            tag = row[6]
-            index = row.Index
+        if matching:
+            return matching
+        else:
+            return None
 
-            if fuzz.partial_ratio(title, query) > 30:
-                matchingList.append(self.encodedData[index])
+    def make_recommendation(self,favoriteMovie):
 
-            if fuzz.partial_ratio(tag, query) > 30:
-                matchingList.append(self.encodedData[index])
+        matching = self.findMatching(favoriteMovie)
+        if matching is None:
+            return None
+        else:
+            movie_name = self.user_movie_df[matching]
 
-        return matchingList
-
-    def make_recommendation(self,favoriteMovies):
-        PredictionList = []
-
-        for i in range(len(favoriteMovies)):
-            PredictionList.extend(self.findMatching(favoriteMovies[i]))
-
-        _, predicted = self.model.kneighbors(PredictionList, n_neighbors=9)
-
-        return self.data.iloc[predicted[0]]
+            return self.user_movie_df.corrwith(movie_name).sort_values(ascending=False)[1:6].to_json()
 
 
-
-
-
-
-
-
-##how to use it
-
-#
-# r = Recommendation()
-# #
-# r.findMatching(["shawshanl"])
-# predictedMoviesList = r.make_recommendation(["shawshank redemption", 'the matrix', 'inception', 'dark Knight'])
-# #
-# print(predictedMoviesList.values.tolist())
-# #
-
-#
-# encodedData = pickle.load(open('assets/encodedData', 'rb'))
-# data = pickle.load(open('assets/data', 'rb'))
-# model = pickle.load(open('assets/model', 'rb'))
-#
-
-
-
-# print(type(data))
